@@ -1,5 +1,4 @@
 require('dotenv').config()
-const mongoose = require('mongoose')
 const express = require('express')
 const morgan = require('morgan')
 
@@ -9,13 +8,13 @@ const Person = require('./models/person')
 app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
-morgan.token('data', function getId (req,res) {
-    if (req.method==='POST'){
-           return JSON.stringify(req.body)
-    }
-    else
-      return ''
-  })
+morgan.token('data', function getId (req) {
+  if (req.method==='POST'){
+    return JSON.stringify(req.body)
+  }
+  else
+    return ''
+})
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
@@ -29,14 +28,14 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 app.get('/', (request,response) => {
-    response.send('<h1>Hello World!</h1>')
-  })
+  response.send('<h1>Hello World!</h1>')
+})
 
-app.get('/api/persons',(request,response) => {
+app.get('/api/persons',(request,response,next) => {
   Person.find({}).then(result => {
     response.json(result)
   })
-  .catch(error => {next(error)})
+    .catch(error => {next(error)})
 })
 
 // app.get('/info',(request,response) => {
@@ -47,7 +46,7 @@ app.get('/api/persons',(request,response) => {
 //     </div>`)
 // })
 
-app.get('/api/persons/:id',(request,response) => {
+app.get('/api/persons/:id',(request,response,next) => {
   Person.findById(request.params.id).then(personFound => {
     if (personFound)
       response.json(personFound)
@@ -62,14 +61,16 @@ app.put('/api/persons/:id',(request,response,next) => {
     name:request.body.name,
     number:request.body.number
   }
-  Person.findByIdAndUpdate(request.params.id, newPerson)
-  .then(updatedNote => {response.json(updatedNote)})
-    .catch(error => {next(error)})
+  Person.findByIdAndUpdate(request.params.id, newPerson,{ runValidators: true })
+    .then(updatedNote => {response.json(updatedNote)})
+    .catch(error => {
+      console.log(error)
+      next(error)})
 })
 
 app.delete('/api/persons/:id',(request,response,next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {response.status(204).end()})
+    .then(() => {response.status(204).end()})
     .catch(error => {next(error)})
   
 })
@@ -79,11 +80,11 @@ app.post('/api/persons',(request,response,next) => {
   const body = request.body
   if(!body.number)
   {return response.status(400).json({
-    	error: 'number missing' })
+    error: 'number missing' })
   }
   if(!body.name)
   {return response.status(400).json({
-    	error: 'name missing' })
+    error: 'name missing' })
   }
   else{
     const newPerson = new Person ({
@@ -94,11 +95,12 @@ app.post('/api/persons',(request,response,next) => {
     // if (personFound==undefined)
     newPerson.save().then(createdPerson => {response.json(createdPerson)
     })
-    .catch(error => {next(error)})
+      .catch(error => {next(error)})
     // })
   }
 })
 app.use(errorHandler)
+// eslint-disable-next-line no-undef
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
