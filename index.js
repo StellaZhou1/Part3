@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const express = require('express')
 const morgan = require('morgan')
 
@@ -39,9 +40,9 @@ let persons=[
 app.get('/', (request,response) => {
     response.send('<h1>Hello World!</h1>')
   })
-app.get('/api/persons',(request,response) => {
-    response.json(persons)
-  })
+// app.get('/api/persons',(request,response) => {
+//     response.json(persons)
+//   })
 app.get('/info',(request,response) => {
     let date = new Date()
     response.send(`<div>
@@ -64,28 +65,28 @@ app.delete('/api/persons/:id',(request,response)=>{
 	persons=persons.filter(person=>person.id!==id)
 	response.status(204).end()
 })
-app.post('/api/persons',(request,response)=>{
-	const id=Math.floor(Math.random()*100000)
-	const body = request.body
-    if(!body.number){
-        return response.status(400).json({error: 'number missing' })
-	}
-	if(!body.name){
-        return response.status(400).json({error: 'name missing' })
-	}
-	else{
-        if(persons.find(person=>person.name===body.name)){
-            return response.status(400).json({ error: 'name must be unique' })
-        }
-        const newPerson = {
-            id:id,
-            name:body.name,
-            number:body.number
-        }
-        persons = persons.concat(newPerson)
-        response.json(newPerson)
-    }
-})
+// app.post('/api/persons',(request,response)=>{
+// 	const id=Math.floor(Math.random()*100000)
+// 	const body = request.body
+//     if(!body.number){
+//         return response.status(400).json({error: 'number missing' })
+// 	}
+// 	if(!body.name){
+//         return response.status(400).json({error: 'name missing' })
+// 	}
+// 	else{
+//         if(persons.find(person=>person.name===body.name)){
+//             return response.status(400).json({ error: 'name must be unique' })
+//         }
+//         const newPerson = {
+//             id:id,
+//             name:body.name,
+//             number:body.number
+//         }
+//         persons = persons.concat(newPerson)
+//         response.json(newPerson)
+//     }
+// })
   
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
