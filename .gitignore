@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .env
+=======
+
+>>>>>>> parent of b64db6e (3.18)
 /node_modules
