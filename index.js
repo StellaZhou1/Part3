@@ -1,9 +1,11 @@
+require('dotenv').config()
 const mongoose = require('mongoose')
 const express = require('express')
 const morgan = require('morgan')
 
 const cors = require('cors')
 const app = express()
+const Person = require('./models/person')
 app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
@@ -40,9 +42,13 @@ let persons=[
 app.get('/', (request,response) => {
     response.send('<h1>Hello World!</h1>')
   })
-// app.get('/api/persons',(request,response) => {
-//     response.json(persons)
-//   })
+
+app.get('/api/persons',(request,response) => {
+  Person.find({}).then(result => {
+    response.json(result)
+  })
+})
+
 app.get('/info',(request,response) => {
     let date = new Date()
     response.send(`<div>
@@ -65,30 +71,33 @@ app.delete('/api/persons/:id',(request,response)=>{
 	persons=persons.filter(person=>person.id!==id)
 	response.status(204).end()
 })
-// app.post('/api/persons',(request,response)=>{
-// 	const id=Math.floor(Math.random()*100000)
-// 	const body = request.body
-//     if(!body.number){
-//         return response.status(400).json({error: 'number missing' })
-// 	}
-// 	if(!body.name){
-//         return response.status(400).json({error: 'name missing' })
-// 	}
-// 	else{
-//         if(persons.find(person=>person.name===body.name)){
-//             return response.status(400).json({ error: 'name must be unique' })
-//         }
-//         const newPerson = {
-//             id:id,
-//             name:body.name,
-//             number:body.number
-//         }
-//         persons = persons.concat(newPerson)
-//         response.json(newPerson)
-//     }
-// })
+
+app.post('/api/persons',(request,response,next) => {
+  const body = request.body
+  if(!body.number)
+  {return response.status(400).json({
+    	error: 'number missing' })
+  }
+  if(!body.name)
+  {return response.status(400).json({
+    	error: 'name missing' })
+  }
+  else{
+    const newPerson = new Person ({
+      name:body.name,
+      number:body.number
+    })
+    // Person.find({"name" : body.name}).then(personFound=>{
+    // if (personFound==undefined)
+    newPerson.save().then(createdPerson => {response.json(createdPerson)
+    })
+      .catch(error => {
+        next(error)})
+    // })
+  }
+})
   
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
